@@ -5,6 +5,7 @@
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 from tensorflow.keras.preprocessing.image import img_to_array
 from tensorflow.keras.models import load_model
+from utils import visualize_image
 import numpy as np
 import argparse
 import logging
@@ -55,9 +56,29 @@ def detect_single_image(image, face_detector, mask_classifier, detect_confidence
 
     return (locs, preds)
 
+def detect_mask_images(image_path_list, face_path, mask_path, detect_confidence, visualize=False):
+    logger.info("Loading face detection model...")
+    prototxt_path = os.path.join(face_path, "deploy.prototxt")
+    weights_path = os.path.join(face_path, "res10_300x300_ssd_iter_140000.caffemodel")
+    detector = cv2.dnn.readNet(prototxt_path, weights_path)
+
+    logger.info("Loading mask classification model...")
+    classifier = load_model(mask_path)
+
+    res_list = []
+    for image_path in image_path_list:
+        image = cv2.imread(image_path)
+        image = cv2.resize(image, (400, 400))
+        (locs, preds) = detect_single_image(image, detector, classifier, detect_confidence)
+        if visualize:
+            visualize_image(image, locs, preds)
+        res_list.append((locs, preds, image_path))
+    return res_list
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-i", "--images", type=str, default=None,
+    parser.add_argument("-i", "--images_dir", type=str, default=None,
                         help="Path to images directory")
     parser.add_argument("-f", "--face", type=str, default="face_detector/model",
                         help="Path to face detection model directory")
@@ -67,40 +88,9 @@ if __name__ == "__main__":
                         help="Minimum probability to filer weak detections")
     args = vars(parser.parse_args())
 
-    logger.info("Loading face detection model...")
-    prototxt_path = os.path.join(args["face"], "deploy.prototxt")
-    weights_path = os.path.join(args['face'], "res10_300x300_ssd_iter_140000.caffemodel")
-    detector = cv2.dnn.readNet(prototxt_path, weights_path)
-
-    logger.info("Loading mask classification model...")
-    classifier = load_model(args["mask"])
-
     logger.info("Loading input images...")
-    image_path_list = glob.glob(os.path.join(args["images"], "*"))
-
-    res_list = []
-    for image_path in image_path_list:
-        image = cv2.imread(image_path)
-        (locs, preds) = detect_single_image(image, detector, classifier, args["detect_confidence"])
-
-        for (box, pred) in zip(locs, preds):
-            (startX, startY, endX, endY) = box
-            (mask, without_mask) = pred
-
-            label = "Mask" if mask > without_mask else "No Mask"
-            color = (0, 255, 0) if label == "Mask" else (0, 0, 255)
-
-            label = "{}: {:.2f}%".format(label, max(mask, without_mask) * 100)
-
-            cv2.putText(image, label, (startX, startY -10),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.45, color, 2)
-            cv2.rectangle(image, (startX, startY), (endX, endY), color, 2)
-        
-        image = cv2.resize(image, (400, 300))
-        cv2.imshow("Prediction", image)
-        key = cv2.waitKey(0)
-
-    cv2.destroyAllWindows()
+    image_path_list = glob.glob(os.path.join(args["images_dir"], "*"))
+    res_list = detect_mask_images(image_path_list, args["face"], args["mask"], args["detect_confidence"], visualize=True)
 
     
 
