@@ -6,35 +6,8 @@ import numpy as np
 import pandas as pd
 
 from utils import merge_result_to_meta
-from detect_mask_images import detect_mask_images
-
-
-
-def euclidean_distance(point_one, point_two):
-    return ((point_one[0] - point_two[0]) ** 2 +
-            (point_one[1] - point_two[1]) ** 2) ** 0.5
-
-def pairwise_euclidean_distance(points):
-    x = np.array([pt[0] for pt in points])
-    y = np.array([pt[1] for pt in points])
-    dist_matrix = np.sqrt(np.square(x - x.reshape(-1,1)) + np.square(y - y.reshape(-1,1)))
-    return dist_matrix
-
-def convert_to_centerpoint(locs):
-    centers = []
-    for loc in locs:
-        (startX, startY, endX, endY) = loc
-        centerX = int((startX + endX) / 2)
-        centerY = int((startY + endY) / 2)
-        centers.append((centerX, centerY))
-    return centers
-
-def distancing_compliance(locs: list, dist_threshold):
-    centers = convert_to_centerpoint(locs)
-    dist_matrix = pairwise_euclidean_distance(centers)
-    if (dist_matrix < dist_threshold).any():
-        return False
-    return True
+from tools.distance_calculate import calculate_distance
+from mask_classifier.detect_mask_images import detect_mask_images
 
 def mask_compliance(preds):
     is_mask = preds[:, 0] > preds[:, 1]
@@ -42,6 +15,10 @@ def mask_compliance(preds):
         return True
     return False
 
+def distancing_compliance(dist, dist_threshold):
+    if dist < dist_threshold:
+        return False
+    return True
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -53,23 +30,26 @@ if __name__ == "__main__":
                         help="Path to mask classification model directory")
     parser.add_argument("-dc", "--detect_confidence", type=float, default=0.5,
                         help="Minimum probability to filer weak detections")
+    parser.add_argument("-cp", "--load_ckpt", type=float, defaul="./depth_estimation/ckpt/res50.pth",
+                        help="Depth model's checkpoint")
+    parser.add_argument("-b", "--backbone", type=str, default="resnet50",
+                        help="Depth model's backbone")
     args = vars(parser.parse_args())
 
     image_path_list = glob.glob(os.path.join(args["images_dir"], "*"))
-    detection_list = detect_mask_images(image_path_list, args["face"], args["mask"], args["detect_confidence"], visualize=False)
+    distance_calc_list = calculate_distance(args["load_ckpt"], args["backbone"], image_path_list, 
+                            args["face"], args["detect_confidence"])
+    mask_detection_list = detect_mask_images(image_path_list, args["face"], args["mask"], args["detect_confidence"], visualize=False)
 
     result_list = []
-    for locs, preds, image_path in detection_list:
+    import tqdm
+    for dist, locs, preds, image_path in tqdm(zip(distance_calc_list, mask_detection_list), total=len(image_path_list), desc="5k compliance on public test"):
         # locs: List of tuple, preds numpy array (N, 2)
         image_name = os.path.basename(image_path)
         # Continue if prediction is empty
-        if len(locs) == 0:
-            is_5k_compliance = 1
-            result_list.append((image_name, is_5k_compliance))
-            continue
+        is_distance_compliance = distancing_compliance(dist, 0.1)
         is_mask_compliance = mask_compliance(preds)
-        is_distancing_compliance = distancing_compliance(locs, dist_threshold=30)
-        is_5k_compliance = int(is_mask_compliance and is_distancing_compliance)
+        is_5k_compliance = int(is_mask_compliance and is_distance_compliance)
         result_list.append((image_name, is_5k_compliance))
 
     meta_path = "/home/santapo/OnlineLab/5k_compliance_zalo/5k_compliance/data/public_test/public_test_meta.csv"

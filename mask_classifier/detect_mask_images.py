@@ -16,10 +16,10 @@ import os
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("detect_mask_images")
 
-def detect_single_image(image, face_detector, mask_classifier, detect_confidence):
+def detect_single_mask(image, face_detector, mask_classifier, detect_confidence):
     (h, w) = image.shape[:2]
 
-    blob = cv2.dnn.blobFromImage(image, scalefactor=1.0, size=(300, 300),
+    blob = cv2.dnn.blobFromImage(image, scalefactor=1.0, size=(640, 640),
                                 mean=(104.0, 177.0, 123.0))
     face_detector.setInput(blob)
     detections = face_detector.forward()
@@ -68,8 +68,7 @@ def detect_mask_images(image_path_list, face_path, mask_path, detect_confidence,
     res_list = []
     for image_path in image_path_list:
         image = cv2.imread(image_path)
-        image = cv2.resize(image, (400, 400))
-        (locs, preds) = detect_single_image(image, detector, classifier, detect_confidence)
+        (locs, preds) = detect_single_mask(image, detector, classifier, detect_confidence)
         if visualize:
             visualize_image(image, locs, preds)
         res_list.append((locs, preds, image_path))
@@ -77,23 +76,11 @@ def detect_mask_images(image_path_list, face_path, mask_path, detect_confidence,
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-i", "--images_dir", type=str, default=None,
-                        help="Path to images directory")
-    parser.add_argument("-f", "--face", type=str, default="face_detector/model",
-                        help="Path to face detection model directory")
-    parser.add_argument("-m", "--mask", type=str, default="mask_classifier/mask_detector.model",
-                        help="Path to mask classification model directory")
-    parser.add_argument("-dc", "--detect_confidence", type=float, default=0.5,
-                        help="Minimum probability to filer weak detections")
-    args = vars(parser.parse_args())
-
-    logger.info("Loading input images...")
-    image_path_list = glob.glob(os.path.join(args["images_dir"], "*"))
-    res_list = detect_mask_images(image_path_list, args["face"], args["mask"], args["detect_confidence"], visualize=True)
-
-    
-
-
+    image_path_list = glob.glob('data/*')
+    face_path = 'face_detect/models'
+    mask_path = 'mask_classifier/models/mask_detector.model'
+    detect_confidence = 0.1
+    res_list = detect_mask_images(image_path_list, face_path, mask_path, detect_confidence)
+    print(res_list)
 
 
