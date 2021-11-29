@@ -14,7 +14,11 @@ def calculate_centroid_coordination(image, locs):
         (startX, startY, endX, endY) = loc
         centroidX = (startX + endX)//2
         centroidY = (startY + endY)//2
-        centroidZ = image[centroidY, centroidX]
+        try:
+            centroidZ = image[centroidY, centroidX]
+        except:
+            print(f"Cannot calculate centroidZ. loc: {loc}, image shape: {image.shape}")
+            continue
         centroid = np.array([centroidX, centroidY, centroidZ]) / np.array([w, h, 60000])
         centroids.append(centroid)
     return centroids

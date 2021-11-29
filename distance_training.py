@@ -10,7 +10,7 @@ for idx, row in df.iterrows():
     sample_name = row["fname"]
     sample_path = os.path.join(data_path, sample_name)
     try:
-        label_mask = int(row["mask"])
+        label_mask = int(row["distancing"])
         image_list.append(sample_path)
         mask_all.append(label_mask)
     except:
@@ -23,6 +23,9 @@ load_ckpt_path = 'ckpt/res50.pth'
 backbone = 'resnet50'
 face_path = 'face_detect/models'
 detect_confidence = 0.4
+
+image_list = image_list[:1000]
+mask_all = mask_all[:1000]
 
 # calculate distance
 all_distance = calculate_distance(load_ckpt_path, backbone, image_list, face_path, detect_confidence)

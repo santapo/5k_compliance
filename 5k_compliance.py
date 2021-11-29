@@ -47,7 +47,7 @@ if __name__ == "__main__":
         # locs: List of tuple, preds numpy array (N, 2)
         image_name = os.path.basename(image_path)
         # Continue if prediction is empty
-        is_distance_compliance = distancing_compliance(dist, 0.1)
+        is_distance_compliance = distancing_compliance(dist, 0.08)
         is_mask_compliance = mask_compliance(preds)
         is_5k_compliance = int(is_mask_compliance and is_distance_compliance)
         result_list.append((image_name, is_5k_compliance))
