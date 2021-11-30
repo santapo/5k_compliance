@@ -7,7 +7,8 @@ import os
 import argparse
 import numpy as np
 import torch
-import tqdm
+from tqdm import tqdm
+
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -52,12 +53,12 @@ def predict_single_depth(depth_model, v):
     depth = (pred_depth_ori/pred_depth_ori.max() * 60000).astype(np.uint16)
     return depth
 
-def predict_depths(load_ckpt_path, backbone, image_path_list):
-    depth_model = RelDepthModel(backbone=backbone)
+def predict_depths(args, image_path_list):
+    depth_model = RelDepthModel(backbone=args.backbone)
     depth_model.eval()
-
+    print(image_path_list)
     # load checkpoint
-    load_ckpt(load_ckpt_path, depth_model, None, None)
+    load_ckpt(args.load_ckpt, depth_model, None, None)
     depth_model.cuda()
     res_depth = []
     from tqdm import tqdm
@@ -68,13 +69,9 @@ def predict_depths(load_ckpt_path, backbone, image_path_list):
     return res_depth
 
 if __name__ == "__main__":
+    from parser_5k import set_parser
     import glob
-    imgs_path = glob.glob('data/*.jpg')
-    # print(image_path_list)
-    backbone = "resnet50"
-    load_ckpt_path = "./ckpt/res50.pth"
-    # args = parse_args()
-    res = predict_depths(load_ckpt_path, backbone, imgs_path)[2]
-    cv2.imshow("v", res)
-    cv2.waitKey(0)
-    
+    args = set_parser()
+    image_path_list = glob.glob(f'{args.images_dir}/*.jpg')
+    res = predict_depths(args, image_path_list)
+    print(res)
