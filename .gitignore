@@ -3,3 +3,4 @@ data/
 face_detector/weights/
 __pycache__/
 *.csv
+.idea

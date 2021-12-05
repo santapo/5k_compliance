@@ -5,7 +5,7 @@ torchvision==0.10.1+cpu
 tensorflow>=2.5.0
 keras==2.4.3
 numpy==1.19.5
-opencv-python
+opencv-python==4.5.1.48
 matplotlib==3.4.1
 argparse==1.4.0
 scipy==1.6.2
