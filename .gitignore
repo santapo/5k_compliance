@@ -1,6 +1,7 @@
 data/
 !face_detector/data
 face_detector/weights/
+mask_classifier/weights/
 __pycache__/
 *.csv
 .idea
