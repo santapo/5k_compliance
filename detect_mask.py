@@ -6,28 +6,32 @@ import pandas as pd
 import numpy as np
 
 from face_detector.detector import RetinaFaceDetector
-from mask_classifier.deploy import classify
+# from mask_classifier.deploy import classify
 
-from tensorflow.keras.models import load_model as tf_load_model
+import tensorflow as tf
+from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
+from tensorflow.keras.preprocessing.image import img_to_array
+from tensorflow.keras.models import load_model
 
 from tqdm import tqdm
 
 if __name__ == "__main__":
-    images_path = "/home/santapo/OnlineLab/challenges/5k_compliance_zalo/5k_compliance/data/public_test/images"
+    images_path = "data/images"
     image_path_list = glob.glob(os.path.join(images_path, "*"))
     
-    weigth_path = "/home/santapo/OnlineLab/challenges/5k_compliance_zalo/5k_compliance/face_detector/weights/Resnet50_Final.pth"
+    # weigth_path = "face_detector/weights/Resnet50_Final.pth"
     detector = RetinaFaceDetector(is_visualize=False)
 
-    # mask_path = "/home/santapo/OnlineLab/challenges/5k_compliance_zalo/5k_compliance/mask_classifier/mask_detector.model"
-    # mask_classifier = tf_load_model(mask_path)
-
+    with tf.device('/cpu:0'):
+        mask_path = "mask_classifier/mask_detector.model"
+        mask_classifier = load_model(mask_path)
 
     collected_data = []
     for i in tqdm(range(len(image_path_list))):
         image_path = image_path_list[i]
         image_name = os.path.split(image_path)[1]
         image = cv2.imread(image_path)
+        # image = cv2.resize()
         image_height, image_width, _ = image.shape
 
         dets = detector.detect_face(image)
@@ -36,11 +40,17 @@ if __name__ == "__main__":
             start_x, start_y, end_x, end_y = det[0:4].astype("int")
             (start_x, start_y) = (max(0, start_x), max(0, start_y))
             face = image[start_y:end_y, start_x:end_x]
+            # face = cv2.cvtColor(face, cv2.COLOR_BGR2RGB)
+            # face = cv2.resize(face, (224, 224))
             face = cv2.cvtColor(face, cv2.COLOR_BGR2RGB)
             face = cv2.resize(face, (224, 224))
+            face = img_to_array(face)
+            face = preprocess_input(face)
+            face = np.expand_dims(face, axis=0)
+            with tf.device("/cpu:0"):
+                (mask, withoutMask) = mask_classifier.predict(face)[0]
             
-            (mask, prob) = classify(img_arr=face)
-            data = (image_name, image_height, image_width, *list(map(int,det)), prob)
+            data = (image_name, image_height, image_width, *list(map(int,det)), mask, withoutMask)
             collected_data.append(data)
         
         # if len(face_images) > 0:
@@ -54,7 +64,7 @@ if __name__ == "__main__":
 
     
     dataframe = pd.DataFrame(collected_data, columns=['fname', 'image_height', 'image_width', 
-                                'start_x', 'start_y', 'end_x', 'end_y', 'detect_conf', 'mask_conf'])
+                                'start_x', 'start_y', 'end_x', 'end_y', 'detect_conf', 'mask', 'withoutMask'])
     dataframe.to_csv('gnn_data.csv')
 
         #     prob_font_scale = (face.shape[0] * face.shape[1]) / (100 * 100)

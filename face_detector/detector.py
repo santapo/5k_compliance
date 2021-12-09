@@ -8,7 +8,7 @@ import logging
 import torch
 import torch.backends.cudnn as cudnn
 
-from .config import cfg_re50
+from .config import cfg_re50, cfg_mnet
 from .layers.functions.prior_box import PriorBox
 from .utils.nms.py_cpu_nms import py_cpu_nms
 from .utils.box_utils import decode
@@ -16,8 +16,8 @@ from .models.retinaface import RetinaFace
 
 class RetinaFaceDetector():
     def __init__(self,
-                 weight_path: str = "/home/santapo/OnlineLab/challenges/5k_compliance_zalo/5k_compliance/face_detector/weights/Resnet50_Final.pth",
-                 device: str = "cpu",
+                 weight_path: str = "face_detector/weights/Resnet50_Final.pth",
+                 device: str = "cuda",
                  config: dict = cfg_re50,
                  is_visualize: bool = False,
                  target_size: int = 1600,
@@ -42,6 +42,7 @@ class RetinaFaceDetector():
 
         self.model = self._load_model(RetinaFace(cfg=self.config, phase="test"),
                                         weight_path, load_to_cpu).eval()
+        self.model.to(self.device)
         
     
     def _check_keys(self, model, pretrained_state_dict):
@@ -114,8 +115,6 @@ class RetinaFaceDetector():
         resize, image = self.resize_image(image)
         image_height, image_width, _ = image.shape
         scale, image = self.preprocess_image(image)
-        # import ipdb; ipdb.set_trace()
-
         loc, conf, _ = self.model(image)  # forward pass
         
 

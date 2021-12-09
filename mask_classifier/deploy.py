@@ -2,21 +2,21 @@ import numpy as np
 import cv2
 import time
 from .func import tf_init
-from keras.models import load_model
-from keras.preprocessing.image import load_img
-from keras.preprocessing.image import img_to_array
-from keras.applications import resnet50, inception_resnet_v2
-from keras.applications.resnet50 import ResNet50
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing.image import load_img
+from tensorflow.keras.preprocessing.image import img_to_array
+from tensorflow.keras.applications import resnet, inception_resnet_v2
+from tensorflow.keras.applications.resnet import ResNet50
 
 tf_init()
-model = load_model('/home/santapo/OnlineLab/challenges/5k_compliance_zalo/5k_compliance/mask_classifier/weights/resnet50.h5')
+model = load_model('mask_classifier/weights/resnet50.h5')
 model_type = 'resnet50'
 csize = 224
 
 
 def classify_on_batch(img_arr=None, batch_size=8, thresh=0.5):
     if model_type == 'resnet50':
-        img_arr = resnet50.preprocess_input(img_arr)
+        img_arr = resnet.preprocess_input(img_arr)
     else:
         img_arr = inception_resnet_v2.preprocess_input(img_arr)
 
@@ -25,7 +25,7 @@ def classify_on_batch(img_arr=None, batch_size=8, thresh=0.5):
 
 
 def classify(img_path='', img_arr=None, thresh=0.5):
-    import ipdb; ipdb.set_trace()
+    # import ipdb; ipdb.set_trace()
     if img_arr is None:
         img_arr = img_to_array(
             load_img(img_path, target_size=(csize, csize))
@@ -36,10 +36,10 @@ def classify(img_path='', img_arr=None, thresh=0.5):
     img_arr = np.expand_dims(img_arr, axis=0)
 
     if model_type == 'resnet50':
-        img_arr = resnet50.preprocess_input(img_arr)
+        img_arr = resnet.preprocess_input(img_arr)
     else:
         img_arr = inception_resnet_v2.preprocess_input(img_arr)
-
+    import ipdb; ipdb.set_trace()
     match = model.predict(img_arr)
     return (1 if match[0][0] > thresh else 0, match[0][0])
 
