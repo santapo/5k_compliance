@@ -8,11 +8,11 @@ import logging
 import torch
 import torch.backends.cudnn as cudnn
 
-from config import cfg_re50
-from layers.functions.prior_box import PriorBox
-from utils.nms.py_cpu_nms import py_cpu_nms
-from utils.box_utils import decode
-from models.retinaface import RetinaFace
+from .config import cfg_re50
+from .layers.functions.prior_box import PriorBox
+from .utils.nms.py_cpu_nms import py_cpu_nms
+from .utils.box_utils import decode
+from .models.retinaface import RetinaFace
 
 class RetinaFaceDetector():
     def __init__(self,
@@ -25,7 +25,7 @@ class RetinaFaceDetector():
                  top_k: int = 5000,
                  keep_top_k: int = 750,
                  nms_threshold: float = 0.2,
-                 detect_confidence: float = 0.1
+                 detect_confidence: float = 0.5
                  ):
 
         self.device = torch.device(device)

@@ -1,1 +1,3 @@
-from detector import RetinaFaceDetector
+__all__ = ["RetinaFaceDetector"]
+
+from .detector import RetinaFaceDetector
