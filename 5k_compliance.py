@@ -25,6 +25,7 @@ if __name__ == "__main__":
     # parser.add_argument("-i", "--images_dir", type=str, default=None,
     #                     help="Path to images directory")
     parser.add_argument('dir', nargs='?', default=os.getcwd())
+    parser.add_argument('out', nargs='?', default=os.getcwd())
     parser.add_argument("-f", "--face", type=str, default="face_detect/models",
                         help="Path to face detection model directory")
     parser.add_argument("-m", "--mask", type=str, default="mask_classifier/models/mask_detector.model",
@@ -57,7 +58,7 @@ if __name__ == "__main__":
         idx += 1
 
     final_df = pd.DataFrame(result_list, columns=["image_id", "fname", "5K"])
-    final_df.to_csv("submission.csv")
+    final_df.to_csv(os.path.join(args["out"], "submission.csv"))
 
 
 
