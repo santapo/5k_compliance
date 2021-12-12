@@ -57,7 +57,7 @@ if __name__ == "__main__":
         idx += 1
 
     final_df = pd.DataFrame(result_list, columns=["image_id", "fname", "5K"])
-    final_df.to_csv("/result/submission.csv")
+    final_df.to_csv("submission.csv")
 
 
 
