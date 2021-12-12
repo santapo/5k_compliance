@@ -1,4 +1,3 @@
 ## Zalo AI challenge: 5K Compliance
 
-bash predict.sh
-
+bash predict.sh 'path_to_images'
