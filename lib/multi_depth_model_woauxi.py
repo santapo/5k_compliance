@@ -14,7 +14,7 @@ class RelDepthModel(nn.Module):
 
     def inference(self, rgb):
         with torch.no_grad():
-            input = rgb.cuda()
+            input = rgb
             depth = self.depth_model(input)
             pred_depth_out = depth - depth.min() + 0.01
             return pred_depth_out

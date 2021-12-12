@@ -58,7 +58,7 @@ def predict_depths(load_ckpt_path, backbone, image_path_list):
 
     # load checkpoint
     load_ckpt(load_ckpt_path, depth_model, None, None)
-    depth_model.cuda()
+    # depth_model.cuda()
     res_depth = []
     from tqdm import tqdm
     for img_path in tqdm(image_path_list, desc='predicting depth image'):

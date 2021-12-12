@@ -1,4 +1,4 @@
-tensorflow>=2.5.0
+tensorflow==2.5.0
 keras==2.4.3
 numpy==1.19.5
 opencv-python==4.5.1.48
@@ -8,3 +8,7 @@ scipy==1.6.2
 scikit-learn==0.24.1
 pillow>=8.3.2
 pandas
+tqdm
+torch
+torchvision
+torchaudio
