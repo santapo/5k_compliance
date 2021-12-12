@@ -10,6 +10,9 @@ from tools.distance_calculate import calculate_distance
 from mask_classifier.detect_mask_images import detect_mask_images
 
 def mask_compliance(preds):
+    # import ipdb; ipdb.set_trace()
+    if preds == []:
+        return True
     is_mask = preds[:, 0] > preds[:, 1]
     if is_mask.all():
         return True
@@ -51,6 +54,7 @@ if __name__ == "__main__":
         locs, preds, image_path = res_mask
         image_name = os.path.basename(image_path)
         # Continue if prediction is empty
+        # import ipdb; ipdb.set_trace()
         is_distance_compliance = distancing_compliance(dist, 0.12)
         is_mask_compliance = mask_compliance(preds)
         is_5k_compliance = int(is_mask_compliance and is_distance_compliance)
@@ -58,7 +62,8 @@ if __name__ == "__main__":
         idx += 1
 
     final_df = pd.DataFrame(result_list, columns=["image_id", "fname", "5K"])
-    final_df.to_csv(os.path.join(args["out"], "submission.csv"))
+    import ipdb; ipdb.set_trace()
+    final_df.to_csv(os.path.join(args["out"], "submission.csv"), index=False)
 
 
 
