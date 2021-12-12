@@ -27,7 +27,7 @@ if __name__ == "__main__":
     parser.add_argument('dir', nargs='?', default=os.getcwd())
     parser.add_argument("-f", "--face", type=str, default="face_detect/models",
                         help="Path to face detection model directory")
-    parser.add_argument("-m", "--mask", type=str, default="mask_classifier/mask_detector.model",
+    parser.add_argument("-m", "--mask", type=str, default="mask_classifier/models/mask_detector.model",
                         help="Path to mask classification model directory")
     parser.add_argument("-dc", "--detect_confidence", type=float, default=0.5,
                         help="Minimum probability to filer weak detections")
