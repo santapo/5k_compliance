@@ -2,6 +2,7 @@
 # python detect_mask_image.py --image images/pic1.jpeg
 
 # import the necessary packages
+import tensorflow as tf
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 from tensorflow.keras.preprocessing.image import img_to_array
 from tensorflow.keras.models import load_model
@@ -52,7 +53,8 @@ def detect_single_mask(image, face_detector, mask_classifier, detect_confidence)
     # only make a prediction if at least one face was detected
     if len(faces) > 0:
         faces = np.array(faces, dtype="float32")
-        preds = mask_classifier.predict(faces, batch_size=32)
+        with tf.device("/cpu:0"):
+            preds = mask_classifier.predict(faces, batch_size=32)
 
     return (locs, preds)
 
@@ -63,7 +65,8 @@ def detect_mask_images(image_path_list, face_path, mask_path, detect_confidence,
     detector = cv2.dnn.readNet(prototxt_path, weights_path)
 
     logger.info("Loading mask classification model...")
-    classifier = load_model(mask_path)
+    with tf.device('/cpu:0'):
+        classifier = load_model(mask_path)
 
     res_list = []
     for image_path in image_path_list:
